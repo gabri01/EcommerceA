@@ -1,5 +1,6 @@
 ﻿using System;
 using Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 
@@ -23,14 +24,17 @@ namespace ECommerceAP.Controllers
             return Ok(business.GetAllProdotti());
         }
 
+        // Per amministratore
         [HttpPost("InsertProdotto")]
+        [Authorize(Roles = "Admin")]
         public long InsertProdotto(Prodotto prodotto)
         {
             return (business.InsertProdotto(prodotto));
         }
 
-
+        // Per amministratore
         [HttpDelete("DeleteProduct")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int idProdotto)
         {
             try

@@ -18,7 +18,7 @@ namespace ECommerceAP.Controllers
             this.business = business;
         }
         [HttpGet("GetByID")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Get()
         {
             var IdUtenteEmailClaim = User.Claims.FirstOrDefault(e => e.Type.Equals("Email",

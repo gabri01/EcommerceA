@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using Models;
 
 namespace Interfaces
@@ -19,7 +20,7 @@ namespace Interfaces
         //Modifica Utente
         public bool ModificaUtente(int ID, string Nome, string Cognome, string Email);
         public Utente GetUtenteByID(string Email);
-
+        
     }
 }
 

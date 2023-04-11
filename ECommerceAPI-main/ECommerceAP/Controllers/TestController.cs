@@ -11,32 +11,32 @@ namespace ECommerceAP.Controllers
     [Route("api/[controller]")]
     public class TestController : ControllerBase
     {
-        //[HttpGet("Email")]
-        //public IActionResult Get()
-        //{
-        //     try
-        //     {
-        //        MailAddress To = new MailAddress("");
-        //        MailAddress From = new MailAddress("");
+        [HttpGet("Email")]
+        public IActionResult Get()
+        {
+            try
+            {
+                MailAddress To = new MailAddress("");
+                MailAddress From = new MailAddress("");
 
-        //        MailMessage email = new MailMessage(From, To);
-        //        email.Subject = "Email inviata con C#";
-        //        email.Body = "Ciao " + "Destinatario" + "!";
+                MailMessage email = new MailMessage(From, To);
+                email.Subject = "Email inviata";
+                email.Body = "Ciao " + "Destinatario" + "!";
 
-        //        SmtpClient smtp = new SmtpClient();
-        //        smtp.Host = "smtp.office365.com";
-        //        smtp.Port = 587;
-        //        smtp.Credentials = new NetworkCredential("", "");
-        //        smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-        //        smtp.EnableSsl = true;
+                SmtpClient smtp = new SmtpClient();
+                smtp.Host = "smtp.office365.com";
+                smtp.Port = 587;
+                smtp.Credentials = new NetworkCredential("", "");
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                smtp.EnableSsl = true;
 
-        //        smtp.Send(email);
-        //        return Ok("Email Inviata");
-        //        }
-        //            catch
-        //        {
-        //        return BadRequest("Email non");
-        //     }
-        //}
+                smtp.Send(email);
+                return Ok("Email Inviata");
+            }
+            catch
+            {
+                return BadRequest("Email non inviata");
+            }
+        }
     }
 }

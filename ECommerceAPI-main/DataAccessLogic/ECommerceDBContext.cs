@@ -22,6 +22,10 @@ using Microsoft.AspNetCore.Authorization;
 //Mail
 using System.Net;
 using System.Net.Mail;
+using Microsoft.AspNetCore.Mvc;
+using static Models.Utente;
+using Microsoft.AspNetCore.Identity;
+using System.Linq;
 
 namespace DataAccessLogic
 {
@@ -111,12 +115,13 @@ namespace DataAccessLogic
             modelBuilder.Entity<Utente>(entity =>
             {
 
-                //entity.HasOne(d => d.IDRuoloNavigation)
-                //    .WithMany(p => p.Utentes)
-                //    .HasForeignKey(d => d.IDRuolo)
-                //    .OnDelete(DeleteBehavior.ClientSetNull)
-                //    .HasConstraintName("FK_Utente_Ruolo");
-
+                entity.HasOne(d => d.IDRuoloNavigation)
+                    .WithMany(p => p.Utentes)
+                    .HasForeignKey(d => d.IDRuolo)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Utente_Ruolo");
+                //modelBuilder.Entity<Utente>().ToTable("Utentes");
+                //modelBuilder.Entity<UtenteAmministrativo>().ToTable("UtenteAmministrativos");
                 entity.Property(e => e.Email).IsFixedLength();
             });
 
@@ -153,7 +158,8 @@ namespace DataAccessLogic
 
             Claim[] Claims = new[]
             {
-                new Claim("Email", Utente.Email)
+                new Claim(ClaimTypes.Email, Utente.Email),
+                new Claim(ClaimTypes.Role, "Admin")
             };
 
             var JwtToken = new JwtSecurityToken
@@ -251,6 +257,7 @@ namespace DataAccessLogic
                 Nome = prodotto.Nome,
                 Quantita = prodotto.Quantita,
                 Prezzo = prodotto.Prezzo,
+                Rating = prodotto.Rating,
                 IDCategoria = prodotto.IDCategoria
             };
             var InsertProdotto = this.Prodottos.Add(product);
@@ -326,40 +333,56 @@ namespace DataAccessLogic
                         this.SaveChanges();
                     }
                     //MAIL
-                    //try
-                    //{
-                    //    MailAddress To = new MailAddress("//Email destinatario");
-                    //    MailAddress From = new MailAddress("//Email mia");
+                    try
+                    {
+                        var utenti = this.Utentes.Where(u => u.Email != null && u.Email.Equals(Email)).ToList();
 
-                    //    MailMessage email = new MailMessage(From, To);
-                    //    email.Subject = "Nuovo ordine #" + Ordine.IDUtente;
-                    //    email.Body = "Ecco i dettagli del nuovo ordine:\n\n" +
-                    //                 "Data: " + DateTime.Now + "\n" +
-                    //                 "ID Utente: " + Ordine.IDUtente + "\n" +
-                    //                 "Stato: " + Ordine.IdStato + "\n" +
-                    //                 "Pagamento: " + Ordine.IdPagamento + "\n" +
-                    //                 "Corriere: " + Ordine.IDCorriere + "\n" +
-                    //                 "Indirizzo di spedizione: " + Ordine.IndirizzoSpedizione + "\n\n" +
-                    //                 "Prodotti:\n";
+                        foreach (var utente in utenti)
+                        {
+                            MailAddress To = new MailAddress(utente.Email);
+                            MailAddress From = new MailAddress("//marcorossi8@gmail.com");
 
-                    //    foreach (Prodotto Prodotto in Ordine.Prodotti)
-                    //    {
-                    //        email.Body += "- " + Prodotto.Nome + " (ID: " + Prodotto.ID + ") - Quantità: " + Prodotto.Quantita + "\n";
-                    //    }
+                            MailMessage email = new MailMessage(From, To);
+                            email.Subject = "Nuovo ordine #" + Ordine.IDUtente;
+                            email.Body = "Ecco i dettagli del nuovo ordine:\n\n" +
+                                         "Data: " + DateTime.Now + "\n" +
+                                         "ID Utente: " + Ordine.IDUtente + "\n" +
+                                         "Stato: " + Ordine.IdStato + "\n" +
+                                         "Pagamento: " + Ordine.IdPagamento + "\n" +
+                                         "Corriere: " + Ordine.IDCorriere + "\n" +
+                                         "Indirizzo di spedizione: " + Ordine.IndirizzoSpedizione + "\n\n" +
+                                         "Prodotti:\n";
 
-                    //    SmtpClient smtp = new SmtpClient();
-                    //    smtp.Host = "smtp.office365.com";
-                    //    smtp.Port = 587;
-                    //    smtp.Credentials = new NetworkCredential("//Email", "//Password");
-                    //    smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    //    smtp.EnableSsl = true;
+                            foreach (Prodotto Prodotto in Ordine.Prodotti)
+                            {
+                                email.Body += "- " + Prodotto.Nome + " (ID: " + Prodotto.ID + ") - Quantità: " + Prodotto.Quantita + "\n";
+                            }
 
-                    //    smtp.Send(email);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    throw new ArgumentException("Email non inviata" + ex.Message);
-                    //}
+                            SmtpClient smtp = new SmtpClient();
+                            smtp.Host = "smtp.office365.com";
+                            smtp.Port = 587;
+                            smtp.Credentials = new NetworkCredential("//marcorossi8@gmail.com", "//rossimarco");
+                            smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                            smtp.EnableSsl = true;
+                            smtp.Timeout = 10000; // timeout di 10 secondi
+
+                            //Autenticazione email
+                            smtp.SendCompleted += (s, e) =>
+                            {
+                                if (e.UserState != null)
+                                {
+                                    ((MailMessage)e.UserState).Dispose();
+                                }
+                            };
+
+                            smtp.SendAsync(email, email);
+                        }
+                        
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ArgumentException("Email non inviata" + ex.Message);
+                    }
                 }
                 catch (InvalidOperationException)
                 {

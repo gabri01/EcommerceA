@@ -18,7 +18,8 @@ namespace ECommerceAP.Controllers
         }
 
         [HttpGet("GetOrdine")]
-        [Authorize]
+        [Authorize]   
+        [Authorize(Roles = "Admin")]   
         public IActionResult Get()
         {
             var IdUtenteEmailClaim = User.Claims.FirstOrDefault(e => e.Type.Equals("Email",
@@ -29,6 +30,7 @@ namespace ECommerceAP.Controllers
 
         //Per Amministratore
         [HttpDelete("DeleteOrderByUser")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int idOrdine, string email, string password)
         {
             var IdUtenteEmailClaim = User.Claims.FirstOrDefault(e => e.Type.Equals("Email",
@@ -64,7 +66,7 @@ namespace ECommerceAP.Controllers
         }
 
         [HttpPut("UpdateOrder")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Update(int idOrdine, int idStato)
         {
             try
@@ -88,7 +90,7 @@ namespace ECommerceAP.Controllers
             //if (business.AutenticazioneUtente(Utente))
             //    return BadRequest(new { message = "Utente non registrato." });
             if (business.InsertOrdine(Ordine, IdUtenteEmailClaim.Value))
-                return Ok("Oridine effettuato.");
+                return Ok("Ordine effettuato.");
             return BadRequest(new { message = "Ordine non effettuato!" });
         }
     }
